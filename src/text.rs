@@ -36,18 +36,18 @@ fn kv_pairs(input: &str) -> IResult<&str, Vec<(&str, &str)>> {
 }
 
 fn kv_pair(input: &str) -> IResult<&str, (&str, &str)> {
-    separated_pair(unseparated_string, char(','), unseparated_string)(input)
+    separated_pair(undelimited_string, char(','), undelimited_string)(input)
 }
 
-fn unseparated_string(input: &str) -> IResult<&str, &str> {
-    recognize(many1(alt((not_separator, escaped_separator))))(input)
+fn undelimited_string(input: &str) -> IResult<&str, &str> {
+    recognize(many1(alt((not_delimiter, escaped_delimiter))))(input)
 }
 
-fn not_separator(input: &str) -> IResult<&str, &str> {
+fn not_delimiter(input: &str) -> IResult<&str, &str> {
     is_not(",")(input)
 }
 
-fn escaped_separator(input: &str) -> IResult<&str, &str> {
+fn escaped_delimiter(input: &str) -> IResult<&str, &str> {
     tag(",,")(input)
 }
 
@@ -128,80 +128,80 @@ mod tests {
     }
 
     #[test]
-    fn unseparated_string_easy() {
+    fn undelimited_string_easy() {
         let input = "ab";
-        assert_eq!(Ok(("", "ab")), unseparated_string(input));
+        assert_eq!(Ok(("", "ab")), undelimited_string(input));
     }
 
     #[test]
-    fn unseparated_string_escaped_start() {
+    fn undelimited_string_escaped_start() {
         let input = ",,ab";
-        assert_eq!(Ok(("", ",,ab")), unseparated_string(input));
+        assert_eq!(Ok(("", ",,ab")), undelimited_string(input));
     }
 
     #[test]
-    fn unseparated_string_escaped_middle() {
+    fn undelimited_string_escaped_middle() {
         let input = "a,,b";
-        assert_eq!(Ok(("", "a,,b")), unseparated_string(input));
+        assert_eq!(Ok(("", "a,,b")), undelimited_string(input));
     }
 
     #[test]
-    fn unseparated_string_escaped_end() {
+    fn undelimited_string_escaped_end() {
         let input = "ab,,";
-        assert_eq!(Ok(("", "ab,,")), unseparated_string(input));
+        assert_eq!(Ok(("", "ab,,")), undelimited_string(input));
     }
 
     #[test]
-    fn unseparated_string_escaped_only() {
+    fn undelimited_string_escaped_only() {
         let input = ",,";
-        assert_eq!(Ok(("", ",,")), unseparated_string(input));
+        assert_eq!(Ok(("", ",,")), undelimited_string(input));
     }
 
     #[test]
-    fn unseparated_string_escaped_multiple() {
+    fn undelimited_string_escaped_multiple() {
         let input = "a,,,,b";
-        assert_eq!(Ok(("", "a,,,,b")), unseparated_string(input));
+        assert_eq!(Ok(("", "a,,,,b")), undelimited_string(input));
     }
 
     #[test]
-    fn unseparated_string_unescaped() {
+    fn undelimited_string_unescaped() {
         let input = "a,b";
-        assert_eq!(Ok((",b", "a")), unseparated_string(input));
+        assert_eq!(Ok((",b", "a")), undelimited_string(input));
     }
 
     #[test]
-    fn unseparated_string_escaped_unescaped_one() {
+    fn undelimited_string_escaped_unescaped_one() {
         let input = "a,,,b";
-        assert_eq!(Ok((",b", "a,,")), unseparated_string(input));
+        assert_eq!(Ok((",b", "a,,")), undelimited_string(input));
     }
 
     #[test]
-    fn not_separator_single() {
+    fn not_delimiter_single() {
         let input = "a";
-        assert_eq!(Ok(("", "a")), not_separator(input));
+        assert_eq!(Ok(("", "a")), not_delimiter(input));
     }
 
     #[test]
-    fn not_separator_multiple() {
+    fn not_delimiter_multiple() {
         let input = "ab";
-        assert_eq!(Ok(("", "ab")), not_separator(input));
+        assert_eq!(Ok(("", "ab")), not_delimiter(input));
     }
 
     #[test]
-    fn not_separator_terminated() {
+    fn not_delimiter_terminated() {
         let input = "ab,";
-        assert_eq!(Ok((",", "ab")), not_separator(input));
+        assert_eq!(Ok((",", "ab")), not_delimiter(input));
     }
 
     #[test]
-    fn not_separator_followed() {
+    fn not_delimiter_followed() {
         let input = "ab,cd";
-        assert_eq!(Ok((",cd", "ab")), not_separator(input));
+        assert_eq!(Ok((",cd", "ab")), not_delimiter(input));
     }
 
     #[test]
-    fn escaped_separator_single() {
+    fn escaped_delimiter_single() {
         let input = ",,";
-        assert_eq!(Ok(("", ",,")), escaped_separator(input));
+        assert_eq!(Ok(("", ",,")), escaped_delimiter(input));
     }
 }
