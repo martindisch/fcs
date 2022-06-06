@@ -1,12 +1,35 @@
 use nom::{
     branch::alt,
-    bytes::complete::{is_not, tag},
+    bytes::complete::{is_not, tag, take},
     character::complete::char,
     combinator::recognize,
     multi::{many1, separated_list1},
     sequence::separated_pair,
     IResult,
 };
+use std::collections::HashMap;
+
+#[derive(Debug, PartialEq)]
+struct Text {
+    delimiter: char,
+    pairs: HashMap<String, String>,
+}
+
+fn parse(input: &str) -> IResult<&str, Text> {
+    let (input, delimiter) = take(1usize)(input)?;
+    let delimiter = delimiter.chars().next().expect(
+        "Since we consumed the first character, we know it'll be here",
+    );
+
+    let (input, pairs) = kv_pairs(input)?;
+    // TODO: replace escaped delimiters
+    let pairs = pairs
+        .into_iter()
+        .map(|(key, value)| (key.to_uppercase(), value.to_string()))
+        .collect();
+
+    Ok((input, Text { delimiter, pairs }))
+}
 
 fn kv_pairs(input: &str) -> IResult<&str, Vec<(&str, &str)>> {
     separated_list1(char(','), kv_pair)(input)
@@ -31,6 +54,24 @@ fn escaped_separator(input: &str) -> IResult<&str, &str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parse_full() {
+        let input = ",$key1,val,,ue1,$KEY2,,,value2,";
+        assert_eq!(
+            Ok((
+                ",",
+                Text {
+                    delimiter: ',',
+                    pairs: HashMap::from([
+                        ("$KEY1".into(), "val,,ue1".into()),
+                        ("$KEY2,,".into(), "value2".into())
+                    ])
+                }
+            )),
+            parse(input)
+        );
+    }
 
     #[test]
     fn kv_pairs_single() {
