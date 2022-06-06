@@ -1,9 +1,9 @@
 use nom::{
     branch::alt,
-    bytes::complete::{is_not, tag, take},
+    bytes::complete::{is_not, take},
     character::complete::char,
     combinator::recognize,
-    multi::{many1, separated_list1},
+    multi::{count, many1, separated_list1},
     sequence::separated_pair,
     IResult,
 };
@@ -48,7 +48,7 @@ fn not_delimiter(input: &str) -> IResult<&str, &str> {
 }
 
 fn escaped_delimiter(input: &str) -> IResult<&str, &str> {
-    tag(",,")(input)
+    recognize(count(char(','), 2))(input)
 }
 
 #[cfg(test)]
