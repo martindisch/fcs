@@ -1,10 +1,16 @@
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
+    character::complete::char,
     combinator::recognize,
     multi::many1,
+    sequence::separated_pair,
     IResult,
 };
+
+fn kv_pair(input: &str) -> IResult<&str, (&str, &str)> {
+    separated_pair(unseparated_string, char(','), unseparated_string)(input)
+}
 
 fn unseparated_string(input: &str) -> IResult<&str, &str> {
     recognize(many1(alt((not_separator, escaped_separator))))(input)
@@ -21,6 +27,30 @@ fn escaped_separator(input: &str) -> IResult<&str, &str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kv_pair_basic() {
+        let input = "ab,cd";
+        assert_eq!(Ok(("", ("ab", "cd"))), kv_pair(input));
+    }
+
+    #[test]
+    fn kv_pair_escaped_middle() {
+        let input = "a,,b,cd";
+        assert_eq!(Ok(("", ("a,,b", "cd"))), kv_pair(input));
+    }
+
+    #[test]
+    fn kv_pair_escaped_end() {
+        let input = "ab,,,cd";
+        assert_eq!(Ok(("", ("ab,,", "cd"))), kv_pair(input));
+    }
+
+    #[test]
+    fn kv_pair_escaped_overflow() {
+        let input = "ab,cd,e";
+        assert_eq!(Ok((",e", ("ab", "cd"))), kv_pair(input));
+    }
 
     #[test]
     fn unseparated_string_easy() {
