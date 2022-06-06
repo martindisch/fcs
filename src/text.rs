@@ -3,10 +3,14 @@ use nom::{
     bytes::complete::{is_not, tag},
     character::complete::char,
     combinator::recognize,
-    multi::many1,
+    multi::{many1, separated_list1},
     sequence::separated_pair,
     IResult,
 };
+
+fn kv_pairs(input: &str) -> IResult<&str, Vec<(&str, &str)>> {
+    separated_list1(char(','), kv_pair)(input)
+}
 
 fn kv_pair(input: &str) -> IResult<&str, (&str, &str)> {
     separated_pair(unseparated_string, char(','), unseparated_string)(input)
@@ -27,6 +31,36 @@ fn escaped_separator(input: &str) -> IResult<&str, &str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kv_pairs_single() {
+        let input = "ab,cd";
+        assert_eq!(Ok(("", vec![("ab", "cd")])), kv_pairs(input));
+    }
+
+    #[test]
+    fn kv_pairs_multiple() {
+        let input = "ab,cd,ef,gh";
+        assert_eq!(
+            Ok(("", vec![("ab", "cd"), ("ef", "gh")])),
+            kv_pairs(input)
+        );
+    }
+
+    #[test]
+    fn kv_pairs_multiple_overflow() {
+        let input = "ab,cd,ef,gh,ij";
+        assert_eq!(
+            Ok((",ij", vec![("ab", "cd"), ("ef", "gh")])),
+            kv_pairs(input)
+        );
+    }
+
+    #[test]
+    fn kv_pairs_escaped() {
+        let input = "ab,,,c,,d";
+        assert_eq!(Ok(("", vec![("ab,,", "c,,d")])), kv_pairs(input));
+    }
 
     #[test]
     fn kv_pair_basic() {
