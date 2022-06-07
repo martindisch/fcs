@@ -18,6 +18,14 @@ pub struct Text {
     pub pairs: HashMap<String, String>,
 }
 
+impl TryFrom<&str> for Text {
+    type Error = &'static str;
+
+    fn try_from(text: &str) -> Result<Self, Self::Error> {
+        Ok(parse(text).map_err(|_| "Unable to parse TEXT segment")?.1)
+    }
+}
+
 /// Matches the start of the text segment (delimiter) and all following
 /// key-value pairs it can find.
 fn parse(input: &str) -> IResult<&str, Text> {
