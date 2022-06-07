@@ -9,12 +9,17 @@ use nom::{
 };
 use std::collections::HashMap;
 
+/// The text segment with its key-value pairs.
 #[derive(Debug, PartialEq)]
-struct Text {
-    delimiter: char,
-    pairs: HashMap<String, String>,
+pub struct Text {
+    /// The delimiter used to separate values.
+    pub delimiter: char,
+    /// The key-value pairs (keys are capitalized during parsing).
+    pub pairs: HashMap<String, String>,
 }
 
+/// Matches the start of the text segment (delimiter) and all following
+/// key-value pairs it can find.
 fn parse(input: &str) -> IResult<&str, Text> {
     let (input, delimiter_str) = take(1usize)(input)?;
     let delimiter = delimiter_str.chars().next().expect(
@@ -37,10 +42,12 @@ fn parse(input: &str) -> IResult<&str, Text> {
     Ok((input, Text { delimiter, pairs }))
 }
 
+/// Matches sequences of pairs separated by a delimiter.
 fn kv_pairs(input: &str, delimiter: char) -> IResult<&str, Vec<(&str, &str)>> {
     separated_list1(char(delimiter), |i| kv_pair(i, delimiter))(input)
 }
 
+/// Matches pairs of undelimited strings separated by a delimiter.
 fn kv_pair(input: &str, delimiter: char) -> IResult<&str, (&str, &str)> {
     separated_pair(
         |i| undelimited_string(i, delimiter),
@@ -49,6 +56,8 @@ fn kv_pair(input: &str, delimiter: char) -> IResult<&str, (&str, &str)> {
     )(input)
 }
 
+/// Matches contiguous strings, so either text with escaped delimiters or
+/// without any at all.
 fn undelimited_string(input: &str, delimiter: char) -> IResult<&str, &str> {
     recognize(many1(alt((
         |i| not_delimiter(i, delimiter),
@@ -56,10 +65,12 @@ fn undelimited_string(input: &str, delimiter: char) -> IResult<&str, &str> {
     ))))(input)
 }
 
+/// Matches anything that's not a single delimiter.
 fn not_delimiter(input: &str, delimiter: char) -> IResult<&str, &str> {
     is_not(&[delimiter][..])(input)
 }
 
+/// Matches an escaped delimiter (delimiter followed by delimiter).
 fn escaped_delimiter(input: &str, delimiter: char) -> IResult<&str, &str> {
     recognize(count(char(delimiter), 2))(input)
 }
