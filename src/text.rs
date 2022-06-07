@@ -16,16 +16,22 @@ struct Text {
 }
 
 fn parse(input: &str) -> IResult<&str, Text> {
-    let (input, delimiter) = take(1usize)(input)?;
-    let delimiter = delimiter.chars().next().expect(
+    let (input, delimiter_str) = take(1usize)(input)?;
+    let delimiter = delimiter_str.chars().next().expect(
         "Since we consumed the first character, we know it'll be here",
     );
+    let escaped_delimiter = format!("{delimiter}{delimiter}");
 
     let (input, pairs) = kv_pairs(input, delimiter)?;
-    // TODO: replace escaped delimiters
     let pairs = pairs
         .into_iter()
-        .map(|(key, value)| (key.to_uppercase(), value.to_string()))
+        .map(|(key, value)| {
+            (
+                key.replace(&escaped_delimiter, delimiter_str)
+                    .to_uppercase(),
+                value.replace(&escaped_delimiter, delimiter_str),
+            )
+        })
         .collect();
 
     Ok((input, Text { delimiter, pairs }))
@@ -71,8 +77,8 @@ mod tests {
                 Text {
                     delimiter: ',',
                     pairs: HashMap::from([
-                        ("$KEY1".into(), "val,,ue1".into()),
-                        ("$KEY2,,".into(), "value2".into())
+                        ("$KEY1".into(), "val,ue1".into()),
+                        ("$KEY2,".into(), "value2".into())
                     ])
                 }
             )),
