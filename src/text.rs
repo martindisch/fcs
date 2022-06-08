@@ -8,6 +8,7 @@ use nom::{
     IResult,
 };
 use std::collections::HashMap;
+use thiserror::Error;
 
 /// The text segment with its key-value pairs.
 #[derive(Debug, PartialEq)]
@@ -19,12 +20,17 @@ pub struct Text {
 }
 
 impl TryFrom<&str> for Text {
-    type Error = &'static str;
+    type Error = TextError;
 
     fn try_from(text: &str) -> Result<Self, Self::Error> {
-        Ok(parse(text).map_err(|_| "Unable to parse TEXT segment")?.1)
+        Ok(parse(text).map_err(|_| TextError)?.1)
     }
 }
+
+/// The error for parsing the text segment.
+#[derive(Debug, PartialEq, Error)]
+#[error("Unable to parse text segment")]
+pub struct TextError;
 
 /// Matches the start of the text segment (delimiter) and all following
 /// key-value pairs it can find.
