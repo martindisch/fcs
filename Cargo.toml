@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 nom = "7.1.1"
 thiserror = "1.0.31"
+
+[dev-dependencies]
+eyre = "0.6.8"
