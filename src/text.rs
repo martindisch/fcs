@@ -27,11 +27,6 @@ impl TryFrom<&str> for Text {
     }
 }
 
-/// The error for parsing the text segment.
-#[derive(Debug, PartialEq, Error)]
-#[error("Unable to parse text segment")]
-pub struct TextError;
-
 /// Matches the start of the text segment (delimiter) and all following
 /// key-value pairs it can find.
 fn parse(input: &str) -> IResult<&str, Text> {
@@ -88,6 +83,11 @@ fn not_delimiter(input: &str, delimiter: char) -> IResult<&str, &str> {
 fn escaped_delimiter(input: &str, delimiter: char) -> IResult<&str, &str> {
     recognize(count(char(delimiter), 2))(input)
 }
+
+/// The error for parsing the text segment.
+#[derive(Debug, PartialEq, Error)]
+#[error("Unable to parse text segment")]
+pub struct TextError;
 
 #[cfg(test)]
 mod tests {
