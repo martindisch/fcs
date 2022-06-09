@@ -1,4 +1,4 @@
-use eyre::{eyre, Result, WrapErr};
+use eyre::{eyre, Result};
 use fcs::{Header, Text};
 use std::{env, fs, str};
 
@@ -8,18 +8,14 @@ fn main() -> Result<()> {
         .get(1)
         .ok_or(eyre!("no argument for input file given"))?;
 
-    let contents = fs::read(path).wrap_err("could not read file")?;
+    let contents = fs::read(path)?;
 
-    let header = str::from_utf8(&contents[..=57])
-        .wrap_err("header is not a valid string")?;
-    let header =
-        Header::try_from(header).wrap_err("could not parse header")?;
+    let header = str::from_utf8(&contents[..=57])?;
+    let header = Header::try_from(header)?;
     println!("{header:#?}");
 
-    let text = str::from_utf8(&contents[header.text_offsets])
-        .wrap_err("text is not a valid string")?;
-    let text =
-        Text::try_from(text).wrap_err("could not parse text segment")?;
+    let text = str::from_utf8(&contents[header.text_offsets])?;
+    let text = Text::try_from(text)?;
     println!("{text:#?}");
 
     Ok(())

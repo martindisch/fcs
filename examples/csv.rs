@@ -1,4 +1,4 @@
-use eyre::{eyre, Result, WrapErr};
+use eyre::{eyre, Result};
 use fcs::{Data, Header, Text};
 use std::{
     borrow::Borrow,
@@ -17,28 +17,22 @@ fn main() -> Result<()> {
         .get(2)
         .ok_or(eyre!("no argument for output file given"))?;
 
-    let contents = fs::read(in_path).wrap_err("could not read file")?;
+    let contents = fs::read(in_path)?;
 
-    let header = str::from_utf8(&contents[..=57])
-        .wrap_err("header is not a valid string")?;
-    let header =
-        Header::try_from(header).wrap_err("could not parse header")?;
+    let header = str::from_utf8(&contents[..=57])?;
+    let header = Header::try_from(header)?;
 
-    let text = str::from_utf8(&contents[header.text_offsets])
-        .wrap_err("text is not a valid string")?;
-    let text =
-        Text::try_from(text).wrap_err("could not parse text segment")?;
+    let text = str::from_utf8(&contents[header.text_offsets])?;
+    let text = Text::try_from(text)?;
 
-    let data = Data::try_from((&text, &contents[header.data_offsets]))
-        .wrap_err("could not parse data segment")?;
+    let data = Data::try_from((&text, &contents[header.data_offsets]))?;
 
     let parameter_count = text
         .pairs
         .get("$PAR")
         .map(Borrow::borrow)
         .map(str::parse::<usize>)
-        .ok_or(eyre!("number of parameters not set"))?
-        .wrap_err("could not parse number of parameters")?;
+        .ok_or(eyre!("number of parameters not set"))??;
 
     let mut writer = BufWriter::new(File::create(out_path)?);
     for event in data.events.as_slice().chunks(parameter_count) {
