@@ -10,6 +10,7 @@ keywords = ["fcs", "cytometry", "flow-cytometry", "serialization"]
 categories = ["encoding", "parser-implementations", "science"]
 
 [dependencies]
+byteorder = "1.4.3"
 nom = "7.1.1"
 thiserror = "1.0.31"
 

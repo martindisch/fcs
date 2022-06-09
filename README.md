@@ -8,6 +8,7 @@ A low-level Flow Cytometry Standard (FCS) file serializer/deserializer.
 
 - Parsing header segment
 - Parsing text segment
+- Parsing data segment of 32-bit floats in list mode
 
 <!-- cargo-sync-readme end -->
 
