@@ -1,10 +1,12 @@
-use eyre::{Result, WrapErr};
+use eyre::{eyre, Result, WrapErr};
 use fcs::{Header, Text};
 use std::{env, fs, str};
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
-    let path = &args[1];
+    let path = args
+        .get(1)
+        .ok_or(eyre!("no argument for input file given"))?;
 
     let contents = fs::read(path).wrap_err("could not read file")?;
 

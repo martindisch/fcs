@@ -7,7 +7,7 @@ use super::text::Text;
 /// The data segment with its events.
 #[derive(Debug, PartialEq)]
 pub struct Data {
-    events: Vec<f32>,
+    pub events: Vec<f32>,
 }
 
 impl TryFrom<(&Text, &[u8])> for Data {
