@@ -1,7 +1,13 @@
 [package]
 name = "fcs"
 version = "0.1.0"
+authors = ["Martin Disch <martindisch@gmail.com>"]
 edition = "2021"
+description = "A low-level Flow Cytometry Standard (FCS) file serializer/deserializer"
+repository = "https://github.com/martindisch/fcs"
+license = "MIT OR Apache-2.0"
+keywords = ["fcs", "cytometry", "flow-cytometry", "serialization"]
+categories = ["encoding", "parser-implementations", "science"]
 
 [dependencies]
 nom = "7.1.1"
