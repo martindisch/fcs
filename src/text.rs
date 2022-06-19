@@ -7,7 +7,10 @@ use nom::{
     sequence::separated_pair,
     IResult,
 };
-use std::{collections::HashMap, fmt::Display};
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+};
 use thiserror::Error;
 
 /// The text segment with its key-value pairs.
@@ -28,7 +31,7 @@ impl TryFrom<&str> for Text {
 }
 
 impl Display for Text {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let delimiter = self.delimiter;
         let escaped_delimiter = format!("{delimiter}{delimiter}");
 

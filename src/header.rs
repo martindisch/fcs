@@ -1,5 +1,5 @@
 use std::{
-    fmt::Display,
+    fmt::{self, Display},
     num::{IntErrorKind, ParseIntError},
     ops::RangeInclusive,
 };
@@ -45,7 +45,7 @@ impl TryFrom<&str> for Header {
 }
 
 impl Display for Header {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{:<10}{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}",
