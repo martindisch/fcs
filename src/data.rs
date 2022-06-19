@@ -1,5 +1,10 @@
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-use std::{borrow::Borrow, io::Cursor};
+use byteorder::{
+    BigEndian, LittleEndian, NativeEndian, ReadBytesExt, WriteBytesExt,
+};
+use std::{
+    borrow::Borrow,
+    io::{self, Cursor, Write},
+};
 use thiserror::Error;
 
 use super::text::Text;
@@ -44,6 +49,17 @@ impl TryFrom<(&Text, &[u8])> for Data {
         .map_err(|_| DataError::BadRead)?;
 
         Ok(Self { events })
+    }
+}
+
+impl Data {
+    /// Writes the data segment to `writer` in native byte order.
+    pub fn write(&self, writer: &mut impl Write) -> io::Result<()> {
+        for &number in &self.events {
+            writer.write_f32::<NativeEndian>(number)?;
+        }
+
+        Ok(())
     }
 }
 
