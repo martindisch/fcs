@@ -1,4 +1,5 @@
 use std::{
+    fmt::Display,
     num::{IntErrorKind, ParseIntError},
     ops::RangeInclusive,
 };
@@ -40,6 +41,22 @@ impl TryFrom<&str> for Header {
             data_offsets: data_start..=data_end,
             analysis_offsets: analysis_start..=analysis_end,
         })
+    }
+}
+
+impl Display for Header {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{:<10}{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}",
+            self.version,
+            self.text_offsets.start(),
+            self.text_offsets.end(),
+            self.data_offsets.start(),
+            self.data_offsets.end(),
+            self.analysis_offsets.start(),
+            self.analysis_offsets.end(),
+        )
     }
 }
 
@@ -111,5 +128,53 @@ mod tests {
         };
 
         assert_eq!(parsed_header, Header::try_from(header).unwrap());
+    }
+
+    #[test]
+    fn write_header1() {
+        let header = Header {
+            version: "FCS3.0".into(),
+            text_offsets: 256..=1545,
+            data_offsets: 1792..=202456,
+            analysis_offsets: 0..=0,
+        };
+        let formatted = header.to_string();
+
+        assert_eq!(
+            "FCS3.0         256    1545    1792  202456       0       0",
+            formatted
+        );
+    }
+
+    #[test]
+    fn write_header2() {
+        let header = Header {
+            version: "FCS3.0".into(),
+            text_offsets: 256..=1545,
+            data_offsets: 0..=0,
+            analysis_offsets: 0..=0,
+        };
+        let formatted = header.to_string();
+
+        assert_eq!(
+            "FCS3.0         256    1545       0       0       0       0",
+            formatted
+        );
+    }
+
+    #[test]
+    fn write_header3() {
+        let header = Header {
+            version: "FCS3.0".into(),
+            text_offsets: 202451..=203140,
+            data_offsets: 1792..=202450,
+            analysis_offsets: 0..=0,
+        };
+        let formatted = header.to_string();
+
+        assert_eq!(
+            "FCS3.0      202451  203140    1792  202450       0       0",
+            formatted
+        );
     }
 }
