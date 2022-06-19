@@ -24,8 +24,23 @@ fn main() -> Result<()> {
     let text = str::from_utf8(&contents[header.text_offsets.clone()])?;
     let text = Text::try_from(text)?;
 
-    let data =
-        Data::try_from((&text, &contents[header.data_offsets.clone()]))?;
+    let data_offsets = if header.data_offsets.start() == &0 {
+        text.pairs
+            .get("$BEGINDATA")
+            .unwrap()
+            .trim()
+            .parse::<usize>()?
+            ..=text
+                .pairs
+                .get("$ENDDATA")
+                .unwrap()
+                .trim()
+                .parse::<usize>()?
+    } else {
+        header.data_offsets.clone()
+    };
+
+    let data = Data::try_from((&text, &contents[data_offsets]))?;
 
     let mut writer = BufWriter::new(File::create(out_path)?);
     write!(writer, "{header}{text}")?;
