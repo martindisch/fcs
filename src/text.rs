@@ -7,7 +7,7 @@ use nom::{
     sequence::separated_pair,
     IResult,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 use thiserror::Error;
 
 /// The text segment with its key-value pairs.
@@ -24,6 +24,33 @@ impl TryFrom<&str> for Text {
 
     fn try_from(text: &str) -> Result<Self, Self::Error> {
         Ok(parse(text).map_err(|_| TextError)?.1)
+    }
+}
+
+impl Display for Text {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let delimiter = self.delimiter;
+        let escaped_delimiter = format!("{delimiter}{delimiter}");
+
+        write!(f, "{delimiter}")?;
+
+        // In order to be deterministic we need to sort the keys
+        let mut ordered_keys: Vec<&String> = self.pairs.keys().collect();
+        ordered_keys.sort();
+
+        for key in ordered_keys {
+            write!(
+                f,
+                "{}{delimiter}{}{delimiter}",
+                key.replace(delimiter, &escaped_delimiter),
+                self.pairs
+                    .get(key)
+                    .expect("Access by key we know to exist is safe")
+                    .replace(delimiter, &escaped_delimiter),
+            )?;
+        }
+
+        Ok(())
     }
 }
 
@@ -241,5 +268,19 @@ mod tests {
     fn escaped_delimiter_single() {
         let input = ",,";
         assert_eq!(Ok(("", ",,")), escaped_delimiter(input, ','));
+    }
+
+    #[test]
+    fn write_full() {
+        let text = Text {
+            delimiter: ',',
+            pairs: HashMap::from([
+                ("$KEY1".into(), "val,ue1".into()),
+                ("$KEY2,".into(), "value2".into()),
+            ]),
+        };
+        let formatted = text.to_string();
+
+        assert_eq!(",$KEY1,val,,ue1,$KEY2,,,value2,", formatted);
     }
 }
